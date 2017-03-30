@@ -1,0 +1,40 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta charset="UTF-8" />
+	<title>二狗弹幕</title>
+	<link rel="stylesheet" type="text/css" th:href="@{/static/css/index.css}"/>
+	<script th:src="@{/static/js/jquery1.9.0.min.js}" type="text/javascript" charset="utf-8"></script>
+	<script th:src="@{/static/js/index.js}" type="text/javascript" charset="utf-8"></script>
+	<script>
+		function submit() {
+			var name = $('#nickname').val();
+			if(name == '')
+			    alert('尚未填写昵称！');
+			else
+			    $('#name_form').submit();
+        }
+	</script>
+</head>
+<body>
+
+
+	<div class="event" id="login_box" >
+		<div class="login">
+			<div class="title">
+			<div align="center">
+			<span style="color:green">欢迎来到 二狗弹幕</span>
+			</div>
+				
+			</div>
+			<form action="enterChat" method="post" id="name_form">
+				<input type="text" name="nickname" id="nickname" value="" placeholder="请输入昵称"/>
+				<input type="button" value="走你" class="btn" onclick="submit()"/>
+			</form>	
+		</div>
+	</div>
+	
+
+
+</body>
+</html>

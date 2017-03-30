@@ -1,0 +1,167 @@
+﻿<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title th:text="'二狗弹幕-欢迎你:'+${nickname}"></title>
+    <link rel="stylesheet" type="text/css" th:href="@{static/css/index.css}"/>
+    <link rel="stylesheet" type="text/css" th:href="@{static/css/barrager.css}"/>
+    <script th:src="@{static/js/jquery1.9.0.min.js}" type="text/javascript" charset="utf-8"></script>
+    <script th:src="@{static/js/jquery.barrager.min.js}" type="text/javascript" charset="utf-8"></script>
+
+    <style type="text/css">
+
+        /*.send start*/
+        .send {
+            width: 100%;
+            height: 76px;
+            position: absolute;
+            bottom: 0;
+            left: 0;
+        }
+
+        .send .s_fiter {
+            width: 100%;
+            height: 76px;
+            background: #000;
+            position: bottom: 0;
+            left: 0;
+            opacity: 0.8;
+            filter: alpha(opacity=80);
+        }
+
+        .send .s_con {
+            width: 100%;
+            height: 76px;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 2;
+            text-align: center;
+            line-height: 76px;
+        }
+
+        .send .s_con
+        .s_txt {
+            width: 605px;
+            height: 36px;
+            border-radius: 4px 0 0 4px;
+            outline: none;
+            border: 1px solid #5bba32;
+        }
+
+        .send .s_con .s_sub {
+            width: 100px;
+            height: 37px;
+            background: #65c33d;
+            border: 0;
+            outline: none;
+            font-size: 14px;
+            color: #fff;
+            font-family: "微软雅黑";
+            cursor: pointer;
+            border-radius: 0 4px 4px 0;
+            border: 1px solid #5bba32;
+        }
+
+        .send .s_con .s_sub:hover {
+            background: #3eaf0e;
+        }
+
+        /*end .send*/
+    </style>
+    <script th:inline="javascript">
+        var avatar = [[${avatar}]];
+        var myname = [[${nickname}]];
+
+        <!--发射弹幕方法-->
+        function showADanMu(tavatar,msg) {
+            $('body').barrager({'img':tavatar,'info':msg,'speed':10,close:false});
+        }
+
+        <!--添加消息到显示区域-->
+        function addToTalkArea(msg) {
+            $('#chat_area').append('<span style="color:white">'+msg+'</span><br>');
+        }
+
+        <!--输入完毕回车方法-->
+        function send() {
+            var input = $('#input_text').val();
+            $('#input_text').val('');
+            if(input.length>0){
+                //showADanMu(avatar,input);
+                nextTime=new Date().getTime();
+                $.post('sendTalk',{avatar:avatar,nickname:myname,content:input,time:nextTime,stime:getNow()});
+            }
+        };
+
+        <!--时间格式化-->
+        function getNow() {
+            var date = new Date();
+            var year = date.getFullYear();
+            var month = date.getMonth()+1;
+            var day = date.getDate();
+            var hour = date.getHours();
+            var minute = date.getMinutes();
+            return year+'/'+month+'/'+day+' '+hour+':'+minute;
+        }
+
+        <!--回车事件的捕获-->
+        $(function () {
+            $('#input_text').on('keypress',function(event){
+                if(event.keyCode == '13')
+                    send();
+            });
+        });
+
+        <!--循环定时任务-->
+        window.setInterval(getOne, 2000);
+        window.setInterval(getTen, 15000);
+
+        var nextTime = 1;
+        <!--拉取最新的一个-->
+        function getOne() {
+            $.get("nextOne?nextTime="+nextTime,function (data, status) {
+                if(data != 'false'){
+                    var jdata = jQuery.parseJSON(data);
+                    showADanMu(jdata.avatar,jdata.info);
+                    addToTalkArea(jdata.strTime+' '+jdata.info);
+                    nextTime = jdata.time;
+                }
+            })
+        }
+        <!--拉取最新的10个-->
+        function getTen() {
+            $.get("lastTen",function (jdata,status) {
+                if(jdata != '[]'){
+                    $('#chat_area').empty();
+                    var data = jQuery.parseJSON(jdata);
+                    $.each(data,function(i,ndata){
+                        wait2begin(ndata.avatar,ndata.strTime,ndata.info,(i+1)*1000);
+                        nextTime = ndata.time;
+                    });
+                }
+            })
+        }
+
+        <!--倒计时任务-->
+        function wait2begin(navatar,stime,info,time){
+            addToTalkArea(stime+' '+info);
+            window.setTimeout(function(){
+                showADanMu(navatar,info);
+            }, time);
+        }
+    </script>
+</head>
+<body>
+<div id="chat_area">
+
+</div>
+<div class="send">
+    <div class="s_fiter">
+        <div class="s_con">
+            <input type="text" id="input_text" class="s_txt" th:value="${nickname}"/><input type="button" onclick="send()" id="shut" value="发射" class="s_sub"/>
+        </div>
+    </div>
+</div>
+</body>
+</html>
